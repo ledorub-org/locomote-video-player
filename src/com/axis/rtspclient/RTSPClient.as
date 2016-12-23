@@ -275,7 +275,7 @@ package com.axis.rtspclient {
     }
 
     private function onClose(event:Event):void {
-      Logger.log("RTSP stream closed", { state: state, streamBuffer: this.streamBuffer.length });
+      Logger.log("RTSP stream closed. State: " + state + " StreamBuffer: " + this.streamBuffer.length);
       streamEnded = true;
       this.connectionBroken = true;
 
@@ -378,9 +378,9 @@ package com.axis.rtspclient {
 
         /* RTSP commands contain no heavy body, so it's safe to read everything */
         data.readBytes(oBody, 0, parsed.headers['content-length']);
-        Logger.log('RTSP IN:', oBody.toString());
+        Logger.log('RTSP IN:' + oBody.toString());
       } else {
-        Logger.log('RTSP IN:', data.toString());
+        Logger.log('RTSP IN:' + data.toString());
       }
 
       requestReset();
@@ -399,7 +399,7 @@ package com.axis.rtspclient {
       }
 
       switch (state) {
-      case STATE_INITIAL:
+      case STATE_INITIAL:	
         Logger.log("RTSPClient: STATE_INITIAL");
 
       case STATE_OPTIONS:
@@ -431,14 +431,14 @@ package com.axis.rtspclient {
         /* Fall through, it's time for setup */
       case STATE_SETUP:
         Logger.log("RTSPClient: STATE_SETUP");
-        Logger.log(parsed.headers['transport']);
+        Logger.log("Transport: " + parsed.headers['transport']);
 
         if (parsed.headers['session']) {
           session = parsed.headers['session'].match(/^[^;]+/)[0];
         }
 
-        if (state === STATE_SETUP) {
-          /* this is not the case when falling through, e.g. SETUP of first track */
+/*        if (state === STATE_SETUP) {
+          /* this is not the case when falling through, e.g. SETUP of first track 
           if (!(/^RTP\/AVP\/TCP;/.test(parsed.headers["transport"]) &&
             /unicast/.test(parsed.headers["transport"]) &&
             /interleaved=/.test(parsed.headers["transport"]) )){
@@ -449,7 +449,7 @@ package com.axis.rtspclient {
             ErrorManager.dispatchError(461);
             return;
           }
-        }
+        } */
 
         if (0 !== tracks.length) {
           /* More tracks we must setup before playing */
@@ -623,11 +623,11 @@ package com.axis.rtspclient {
     private function sendOptionsReq():void {
       state = STATE_OPTIONS;
       var req:String =
-        "OPTIONS * RTSP/1.0\r\n" +
+        "OPTIONS rtsp://" + urlParsed.host + " RTSP/1.0\r\n" +
         "CSeq: " + (++cSeq) + "\r\n" +
         "User-Agent: " + userAgent + "\r\n" +
         "\r\n";
-      Logger.log('RTSP OUT:', req);
+      Logger.log('RTSP OUT:' + req);
       handle.writeUTFBytes(req);
 
       prevMethod = sendOptionsReq;
@@ -644,7 +644,7 @@ package com.axis.rtspclient {
         auth.authorizationHeader("DESCRIBE", authState, authOpts, urlParsed, digestNC++) +
         "\r\n";
       handle.writeUTFBytes(req);
-      Logger.log('RTSP OUT:', req);
+      Logger.log('RTSP OUT:' + req);
 
       prevMethod = sendDescribeReq;
     }
@@ -655,8 +655,9 @@ package com.axis.rtspclient {
       var setupUrl:String = getSetupURL(block);
 
       Logger.log('Setting up track: ' + setupUrl);
+      Logger.log('URL: ' + urlParsed.full);
       var req:String =
-        "SETUP " + setupUrl + " RTSP/1.0\r\n" +
+        "SETUP " + urlParsed.full + " RTSP/1.0\r\n" +
         "CSeq: " + (++cSeq) + "\r\n" +
         "User-Agent: " + userAgent + "\r\n" +
         (session ? ("Session: " + session + "\r\n") : "") +
@@ -665,7 +666,7 @@ package com.axis.rtspclient {
         "Date: " + new Date().toUTCString() + "\r\n" +
         "\r\n";
       handle.writeUTFBytes(req);
-      Logger.log('RTSP OUT:', req);
+      Logger.log('RTSP OUT:' + req);
 
       prevMethod = sendSetupReq;
     }
@@ -682,7 +683,7 @@ package com.axis.rtspclient {
       req += auth.authorizationHeader("PLAY", authState, authOpts, urlParsed, digestNC++) +
         "\r\n";
       handle.writeUTFBytes(req);
-      Logger.log('RTSP OUT:', req);
+      Logger.log('RTSP OUT:' + req);
 
       prevMethod = sendPlayReq;
     }
@@ -695,7 +696,7 @@ package com.axis.rtspclient {
         "Session: " + session + "\r\n" +
         auth.authorizationHeader("GET_PARAMETER", authState, authOpts, urlParsed, digestNC++) +
         "\r\n";
-      Logger.log('RTSP OUT:', req);
+      Logger.log('RTSP OUT:' + req);
       handle.writeUTFBytes(req);
 
       prevMethod = sendGetParamReq;
@@ -714,7 +715,7 @@ package com.axis.rtspclient {
         auth.authorizationHeader("PAUSE", authState, authOpts, urlParsed, digestNC++) +
         "\r\n";
       handle.writeUTFBytes(req);
-      Logger.log('RTSP OUT:', req);
+      Logger.log('RTSP OUT:' + req);
 
       prevMethod = sendPauseReq;
     }
@@ -730,7 +731,7 @@ package com.axis.rtspclient {
         "\r\n";
 
       handle.writeUTFBytes(req);
-      Logger.log('RTSP OUT:', req);
+      Logger.log('RTSP OUT:' + req);
 
       prevMethod = sendTeardownReq;
     }
